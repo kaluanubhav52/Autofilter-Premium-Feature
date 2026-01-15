@@ -598,3 +598,136 @@ async def settings(client, message):
         btn = [[
                 InlineKeyboardButton("👤 ᴏᴘᴇɴ ɪɴ ᴘʀɪᴠᴀᴛᴇ ᴄʜᴀᴛ 👤", callback_data=f"opnsetpm#{grp_id}")
               ],[
+                InlineKeyboardButton("👥 ᴏᴘᴇɴ ʜᴇʀᴇ 👥", callback_data=f"opnsetgrp#{grp_id}")
+              ]]
+        await message.reply_text(
+                text="<b>ᴡʜᴇʀᴇ ᴅᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴏᴘᴇɴ ꜱᴇᴛᴛɪɴɢꜱ ᴍᴇɴᴜ ? ⚙️</b>",
+                reply_markup=InlineKeyboardMarkup(btn),
+                disable_web_page_preview=True,
+                parse_mode=enums.ParseMode.HTML,
+                reply_to_message_id=message.id
+        )
+    elif chat_type == enums.ChatType.PRIVATE:
+        connected_groups = await db.get_connected_grps(user_id)
+        if not connected_groups:
+            return await message.reply_text("Nᴏ Cᴏɴɴᴇᴄᴛᴇᴅ Gʀᴏᴜᴘs Fᴏᴜɴᴅ .")
+        group_list = []
+        for group in connected_groups:
+            try:
+                Chat = await client.get_chat(group)
+                group_list.append([ InlineKeyboardButton(text=Chat.title, callback_data=f"grp_pm#{Chat.id}") ])
+            except Exception as e:
+                print(f"Error In PM Settings Button - {e}")
+                pass
+        await message.reply_text(
+                    "⚠️ ꜱᴇʟᴇᴄᴛ ᴛʜᴇ ɢʀᴏᴜᴘ ᴡʜᴏꜱᴇ ꜱᴇᴛᴛɪɴɢꜱ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴄʜᴀɴɢᴇ.\n\n"
+                    "ɪꜰ ʏᴏᴜʀ ɢʀᴏᴜᴘ ɪꜱ ɴᴏᴛ ꜱʜᴏᴡɪɴɢ ʜᴇʀᴇ,\n"
+                    "ᴜꜱᴇ /reload ɪɴ ᴛʜᴀᴛ ɢʀᴏᴜᴘ ᴀɴᴅ ɪᴛ ᴡɪʟʟ ᴀᴘᴘᴇᴀʀ ʜᴇʀᴇ.",
+                    reply_markup=InlineKeyboardMarkup(group_list)
+                )
+
+@Client.on_message(filters.command('reload'))
+async def connect_group(client, message):
+    user_id = message.from_user.id
+    if message.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        await db.connect_group(message.chat.id, user_id)
+        await message.reply_text("Gʀᴏᴜᴘ Rᴇʟᴏᴀᴅᴇᴅ ✅ Nᴏᴡ Yᴏᴜ Cᴀɴ Mᴀɴᴀɢᴇ Tʜɪs Gʀᴏᴜᴘ Fʀᴏᴍ PM.")
+    elif message.chat.type == enums.ChatType.PRIVATE:
+        if len(message.command) < 2:
+            await message.reply_text("Example: /reload 123456789")
+            return
+        try:
+            group_id = int(message.command[1])
+            if not await is_check_admin(client, group_id, user_id):
+                await message.reply_text(script.NT_ADMIN_ALRT_TXT)
+                return
+            chat = await client.get_chat(group_id)
+            await db.connect_group(group_id, user_id)
+            await message.reply_text(f"Lɪɴᴋᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ ✅ {chat.title} ᴛᴏ PM.")
+        except:
+            await message.reply_text("Invalid group ID or error occurred.")
+
+@Client.on_message(filters.command('set_template'))
+async def save_template(client, message):
+    sts = await message.reply("ᴄʜᴇᴄᴋɪɴɢ ᴛᴇᴍᴘʟᴀᴛᴇ...")
+    user_id = message.from_user.id if message.from_user else None
+    if not user_id:
+        return await message.reply("ʏᴏᴜ'ʀᴇ ᴀɴᴏɴʏᴍᴏᴜꜱ ᴀᴅᴍɪɴ.")
+
+    if message.chat.type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await sts.edit("⚠️ ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ ɪɴ ᴀ ɢʀᴏᴜᴘ ᴄʜᴀᴛ.")
+
+    group_id = message.chat.id
+    title = message.chat.title
+    if not await is_check_admin(client, group_id, user_id):
+        await message.reply_text(script.NT_ADMIN_ALRT_TXT)
+        return
+    if len(message.command) < 2:
+        return await sts.edit("⚠️ ɴᴏ ᴛᴇᴍᴘʟᴀᴛᴇ ᴘʀᴏᴠɪᴅᴇᴅ!")
+
+    template = message.text.split(" ", 1)[1]
+    await save_group_settings(group_id, 'template', template)
+    await sts.edit(
+        f"✅ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴜᴘᴅᴀᴛᴇᴅ ᴛᴇᴍᴘʟᴀᴛᴇ ꜰᴏʀ <code>{title}</code> ᴛᴏ:\n\n{template}"
+    )
+
+
+# Must add REQST_CHANNEL and SUPPORT_CHAT_ID to use this feature
+@Client.on_message((filters.command(["request", "Request"]) | filters.regex("#request") | filters.regex("#Request")) & filters.group)
+async def requests(bot, message):
+    if REQST_CHANNEL is None or SUPPORT_CHAT_ID is None: return
+    if message.reply_to_message and SUPPORT_CHAT_ID == message.chat.id:
+        chat_id = message.chat.id
+        reporter = str(message.from_user.id)
+        mention = message.from_user.mention
+        success = True
+        content = message.reply_to_message.text
+        try:
+            if REQST_CHANNEL is not None:
+                btn = [[
+                        InlineKeyboardButton('ᴠɪᴇᴡ ʀᴇǫᴜᴇꜱᴛ', url=f"{message.reply_to_message.link}"),
+                        InlineKeyboardButton('ꜱʜᴏᴡ ᴏᴘᴛɪᴏɴꜱ', callback_data=f'show_option#{reporter}')
+                      ]]
+                reported_post = await bot.send_message(chat_id=REQST_CHANNEL, text=f"<b>📝 ʀᴇǫᴜᴇꜱᴛ : <u>{content}</u>\n\n📚 ʀᴇᴘᴏʀᴛᴇᴅ ʙʏ : {mention}\n📖 ʀᴇᴘᴏʀᴛᴇʀ ɪᴅ : {reporter}\n\n</b>", reply_markup=InlineKeyboardMarkup(btn))
+                success = True
+            elif len(content) >= 3:
+                for admin in ADMINS:
+                    btn = [[
+                        InlineKeyboardButton('ᴠɪᴇᴡ ʀᴇǫᴜᴇꜱᴛ', url=f"{message.reply_to_message.link}"),
+                        InlineKeyboardButton('ꜱʜᴏᴡ ᴏᴘᴛɪᴏɴꜱ', callback_data=f'show_option#{reporter}')
+                      ]]
+                    reported_post = await bot.send_message(chat_id=admin, text=f"<b>📝 ʀᴇǫᴜᴇꜱᴛ : <u>{content}</u>\n\n📚 ʀᴇᴘᴏʀᴛᴇᴅ ʙʏ : {mention}\n📖 ʀᴇᴘᴏʀᴛᴇʀ ɪᴅ : {reporter}\n\n</b>", reply_markup=InlineKeyboardMarkup(btn))
+                    success = True
+            else:
+                if len(content) < 3:
+                    await message.reply_text("<b>ʏᴏᴜ ᴍᴜꜱᴛ ᴛʏᴘᴇ ᴀʙᴏᴜᴛ ʏᴏᴜʀ ʀᴇǫᴜᴇꜱᴛ [ᴍɪɴɪᴍᴜᴍ 3 ᴄʜᴀʀᴀᴄᴛᴇʀꜱ]. ʀᴇǫᴜᴇꜱᴛꜱ ᴄᴀɴ'ᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b>")
+            if len(content) < 3:
+                success = False
+        except Exception as e:
+            await message.reply_text(f"Error: {e}")
+            pass
+    elif SUPPORT_CHAT_ID == message.chat.id:
+        chat_id = message.chat.id
+        reporter = str(message.from_user.id)
+        mention = message.from_user.mention
+        success = True
+        content = message.text
+        keywords = ["#request", "/request", "#Request", "/Request"]
+        for keyword in keywords:
+            if keyword in content:
+                content = content.replace(keyword, "")
+        try:
+            if REQST_CHANNEL is not None and len(content) >= 3:
+                btn = [[
+                        InlineKeyboardButton('ᴠɪᴇᴡ ʀᴇǫᴜᴇꜱᴛ', url=f"{message.link}"),
+                        InlineKeyboardButton('ꜱʜᴏᴡ ᴏᴘᴛɪᴏɴꜱ', callback_data=f'show_option#{reporter}')
+                      ]]
+                reported_post = await bot.send_message(chat_id=REQST_CHANNEL, text=f"<b>📝 ʀᴇǫᴜᴇꜱᴛ : <u>{content}</u>\n\n📚 ʀᴇᴘᴏʀᴛᴇᴅ ʙʏ : {mention}\n📖 ʀᴇᴘᴏʀᴛᴇʀ ɪᴅ : {reporter}\n\n</b>", reply_markup=InlineKeyboardMarkup(btn))
+                success = True
+            elif len(content) >= 3:
+                for admin in ADMINS:
+                    btn = [[
+                        InlineKeyboardButton('ᴠɪᴇᴡ ʀᴇǫᴜᴇꜱᴛ', url=f"{message.link}"),
+                        InlineKeyboardButton('ꜱʜᴏᴡ ᴏᴘᴛɪᴏɴꜱ', callback_data=f'show_option#{reporter}')
+                      ]]
+                    reported_post = await bot.send_message(chat_id=admin, text=f"<b>📝 ʀᴇǫᴜᴇꜱᴛ : <u>{content}</u>\n\n📚 ʀᴇᴘᴏʀᴛᴇᴅ ʙʏ : {mention}\n📖 ʀᴇᴘᴏʀᴛᴇʀ ɪᴅ : {reporter}\n\n</b>", reply_markup=InlineKeyboardMarkup(btn))
