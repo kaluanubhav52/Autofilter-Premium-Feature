@@ -731,3 +731,270 @@ async def requests(bot, message):
                         InlineKeyboardButton('ꜱʜᴏᴡ ᴏᴘᴛɪᴏɴꜱ', callback_data=f'show_option#{reporter}')
                       ]]
                     reported_post = await bot.send_message(chat_id=admin, text=f"<b>📝 ʀᴇǫᴜᴇꜱᴛ : <u>{content}</u>\n\n📚 ʀᴇᴘᴏʀᴛᴇᴅ ʙʏ : {mention}\n📖 ʀᴇᴘᴏʀᴛᴇʀ ɪᴅ : {reporter}\n\n</b>", reply_markup=InlineKeyboardMarkup(btn))
+                    success = True
+            else:
+                if len(content) < 3:
+                    await message.reply_text("<b>ʏᴏᴜ ᴍᴜꜱᴛ ᴛʏᴘᴇ ᴀʙᴏᴜᴛ ʏᴏᴜʀ ʀᴇǫᴜᴇꜱᴛ [ᴍɪɴɪᴍᴜᴍ 3 ᴄʜᴀʀᴀᴄᴛᴇʀꜱ]. ʀᴇǫᴜᴇꜱᴛꜱ ᴄᴀɴ'ᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b>")
+            if len(content) < 3:
+                success = False
+        except Exception as e:
+            await message.reply_text(f"Error: {e}")
+            pass
+    elif SUPPORT_CHAT_ID == message.chat.id:
+        chat_id = message.chat.id
+        reporter = str(message.from_user.id)
+        mention = message.from_user.mention
+        success = True
+        content = message.text
+        keywords = ["#request", "/request", "#Request", "/Request"]
+        for keyword in keywords:
+            if keyword in content:
+                content = content.replace(keyword, "")
+        try:
+            if REQST_CHANNEL is not None and len(content) >= 3:
+                btn = [[
+                        InlineKeyboardButton('ᴠɪᴇᴡ ʀᴇǫᴜᴇꜱᴛ', url=f"{message.link}"),
+                        InlineKeyboardButton('ꜱʜᴏᴡ ᴏᴘᴛɪᴏɴꜱ', callback_data=f'show_option#{reporter}')
+                      ]]
+                reported_post = await bot.send_message(chat_id=REQST_CHANNEL, text=f"<b>📝 ʀᴇǫᴜᴇꜱᴛ : <u>{content}</u>\n\n📚 ʀᴇᴘᴏʀᴛᴇᴅ ʙʏ : {mention}\n📖 ʀᴇᴘᴏʀᴛᴇʀ ɪᴅ : {reporter}\n\n</b>", reply_markup=InlineKeyboardMarkup(btn))
+                success = True
+            elif len(content) >= 3:
+                for admin in ADMINS:
+                    btn = [[
+                        InlineKeyboardButton('ᴠɪᴇᴡ ʀᴇǫᴜᴇꜱᴛ', url=f"{message.link}"),
+                        InlineKeyboardButton('ꜱʜᴏᴡ ᴏᴘᴛɪᴏɴꜱ', callback_data=f'show_option#{reporter}')
+                      ]]
+                    reported_post = await bot.send_message(chat_id=admin, text=f"<b>📝 ʀᴇǫᴜᴇꜱᴛ : <u>{content}</u>\n\n📚 ʀᴇᴘᴏʀᴛᴇᴅ ʙʏ : {mention}\n📖 ʀᴇᴘᴏʀᴛᴇʀ ɪᴅ : {reporter}\n\n</b>", reply_markup=InlineKeyboardMarkup(btn))
+                    success = True
+            else:
+                if len(content) < 3:
+                    await message.reply_text("<b>ʏᴏᴜ ᴍᴜꜱᴛ ᴛʏᴘᴇ ᴀʙᴏᴜᴛ ʏᴏᴜʀ ʀᴇǫᴜᴇꜱᴛ [ᴍɪɴɪᴍᴜᴍ 3 ᴄʜᴀʀᴀᴄᴛᴇʀꜱ]. ʀᴇǫᴜᴇꜱᴛꜱ ᴄᴀɴ'ᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b>")
+            if len(content) < 3:
+                success = False
+        except Exception as e:
+            await message.reply_text(f"Error: {e}")
+            pass
+    else:
+        success = False
+    if success:
+        '''if isinstance(REQST_CHANNEL, (int, str)):
+            channels = [REQST_CHANNEL]
+        elif isinstance(REQST_CHANNEL, list):
+            channels = REQST_CHANNEL
+        for channel in channels:
+            chat = await bot.get_chat(channel)
+        #chat = int(chat)'''
+        link = await bot.create_chat_invite_link(int(REQST_CHANNEL))
+        btn = [[
+                InlineKeyboardButton('ᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ', url=link.invite_link),
+                InlineKeyboardButton('ᴠɪᴇᴡ ʀᴇǫᴜᴇꜱᴛ', url=f"{reported_post.link}")
+              ]]
+        await message.reply_text("<b>ʏᴏᴜʀ ʀᴇǫᴜᴇꜱᴛ ʜᴀꜱ ʙᴇᴇɴ ᴀᴅᴅᴇᴅ! ᴘʟᴇᴀꜱᴇ ᴡᴀɪᴛ ꜰᴏʀ ꜱᴏᴍᴇ ᴛɪᴍᴇ.\n\nᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ ꜰɪʀꜱᴛ & ᴠɪᴇᴡ ʀᴇǫᴜᴇꜱᴛ.</b>", reply_markup=InlineKeyboardMarkup(btn))
+
+@Client.on_message(filters.command("send") & filters.user(ADMINS))
+async def send_msg(bot, message):
+    if message.reply_to_message:
+        target_id = message.text.split(" ", 1)[1]
+        out = "Users Saved In DB Are:\n\n"
+        success = False
+        try:
+            user = await bot.get_users(target_id)
+            users = await db.get_all_users()
+            async for usr in users:
+                out += f"{usr['id']}"
+                out += '\n'
+            if str(user.id) in str(out):
+                await message.reply_to_message.copy(int(user.id))
+                success = True
+            else:
+                success = False
+            if success:
+                await message.reply_text(f"<b>ʏᴏᴜʀ ᴍᴇꜱꜱᴀɢᴇ ʜᴀꜱ ʙᴇᴇɴ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ꜱᴇɴᴛ ᴛᴏ {user.mention}.</b>")
+            else:
+                await message.reply_text("<b>ᴛʜɪꜱ ᴜꜱᴇʀ ᴅɪᴅɴ'ᴛ ꜱᴛᴀʀᴛᴇᴅ ᴛʜɪꜱ ʙᴏᴛ ʏᴇᴛ !</b>")
+        except Exception as e:
+            await message.reply_text(f"<b>Error: {e}</b>")
+    else:
+        await message.reply_text("<b>ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ ᴀꜱ ᴀ ʀᴇᴘʟʏ ᴛᴏ ᴀɴʏ ᴍᴇꜱꜱᴀɢᴇ ᴜꜱɪɴɢ ᴛʜᴇ ᴛᴀʀɢᴇᴛ ᴄʜᴀᴛ ɪᴅ. ꜰᴏʀ ᴇɢ:  /send ᴜꜱᴇʀɪᴅ</b>")
+
+@Client.on_message(filters.command("deletefiles") & filters.user(ADMINS))
+async def deletemultiplefiles(bot, message):
+    chat_type = message.chat.type
+    if chat_type != enums.ChatType.PRIVATE:
+        return await message.reply_text(f"<b>Hey {message.from_user.mention}, This command won't work in groups. It only works on my PM !</b>")
+    else:
+        pass
+    try:
+        keyword = message.text.split(" ", 1)[1]
+    except:
+        return await message.reply_text(f"<b>Hey {message.from_user.mention}, Give me a keyword along with the command to delete files.</b>")
+    k = await bot.send_message(chat_id=message.chat.id, text=f"<b>Fetching Files for your query {keyword} on DB... Please wait...</b>")
+    files, total = await get_bad_files(keyword)
+    total = len(files)
+    if total == 0:
+        await k.edit_text(f"<b>No files found for your query {keyword} !</b>")
+        await asyncio.sleep(DELETE_TIME)
+        await k.delete()
+        return
+    await k.delete()
+    btn = [[
+       InlineKeyboardButton("⚠️ Yes, Continue ! ⚠️", callback_data=f"killfilesdq#{keyword}")
+       ],[
+       InlineKeyboardButton("❌ No, Abort operation ! ❌", callback_data="close_data")
+    ]]
+    await message.reply_text(
+        text=f"<b>Found {total} files for your query {keyword} !\n\nDo you want to delete?</b>",
+        reply_markup=InlineKeyboardMarkup(btn),
+        parse_mode=enums.ParseMode.HTML
+    )
+
+
+@Client.on_callback_query(filters.regex("topsearch"))
+async def topsearch_callback(client, callback_query):
+    def is_alphanumeric(string):
+        return bool(re.match('^[a-zA-Z0-9 ]*$', string))
+
+    limit = 20
+    top_messages = await mdb.get_top_messages(limit)
+    seen_messages = set()
+    truncated_messages = []
+    for msg in top_messages:
+        msg_lower = msg.lower()
+        if msg_lower not in seen_messages and is_alphanumeric(msg):
+            seen_messages.add(msg_lower)
+            if len(msg) > 35:
+                truncated_messages.append(msg[:32] + "...")
+            else:
+                truncated_messages.append(msg)
+    keyboard = [truncated_messages[i:i+2] for i in range(0, len(truncated_messages), 2)]
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard,
+        one_time_keyboard=True,
+        resize_keyboard=True,
+        placeholder="Most searches of the day"
+    )
+    await callback_query.message.reply_text(
+        "<b>Tᴏᴘ Sᴇᴀʀᴄʜᴇs Oғ Tʜᴇ Dᴀʏ 👇</b>",
+        reply_markup=reply_markup
+    )
+    await callback_query.answer()
+
+@Client.on_message(filters.command('top_search'))
+async def top(_, message):
+    def is_alphanumeric(string):
+        return bool(re.match('^[a-zA-Z0-9 ]*$', string))
+    try:
+        limit = int(message.command[1])
+    except (IndexError, ValueError):
+        limit = 20
+    top_messages = await mdb.get_top_messages(limit)
+    seen_messages = set()
+    truncated_messages = []
+    for msg in top_messages:
+        msg_lower = msg.lower()
+        if msg_lower not in seen_messages and is_alphanumeric(msg):
+            seen_messages.add(msg_lower)
+            if len(msg) > 35:
+                truncated_messages.append(msg[:32] + "...")
+            else:
+                truncated_messages.append(msg)
+    keyboard = [truncated_messages[i:i+2] for i in range(0, len(truncated_messages), 2)]
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard,
+        one_time_keyboard=True,
+        resize_keyboard=True,
+        placeholder="Most searches of the day"
+    )
+    await message.reply_text(
+        "<b>Tᴏᴘ Sᴇᴀʀᴄʜᴇs Oғ Tʜᴇ Dᴀʏ 👇</b>",
+        reply_markup=reply_markup
+    )
+
+@Client.on_message(filters.command('trendlist'))
+async def trendlist(client, message):
+    def is_alphanumeric(string):
+        return bool(re.match('^[a-zA-Z0-9 ]*$', string))
+    limit = 31
+    if len(message.command) > 1:
+        try:
+            limit = int(message.command[1])
+        except ValueError:
+            await message.reply_text(
+                "Invalid number format.\nPlease provide a valid number after the /trendlist command."
+            )
+            return
+    try:
+        top_messages = await mdb.get_top_messages(limit)
+    except Exception as e:
+        await message.reply_text(f"Error retrieving messages: {str(e)}")
+        return
+
+    if not top_messages:
+        await message.reply_text("No top messages found.")
+        return
+    seen_messages = set()
+    truncated_messages = []
+
+    for msg in top_messages:
+        msg_lower = msg.lower()
+        if msg_lower not in seen_messages and is_alphanumeric(msg):
+            seen_messages.add(msg_lower)
+            truncated_messages.append(msg[:32] + '...' if len(msg) > 35 else msg)
+
+    if not truncated_messages:
+        await message.reply_text("No valid top messages found.")
+        return
+    formatted_list = "\n".join([f"{i+1}. <b>{msg}</b>" for i, msg in enumerate(truncated_messages)])
+    additional_message = (
+        "⚡️ 𝑨𝒍𝒍 𝒕𝒉𝒆 𝒓𝒆𝒔𝒖𝒍𝒕𝒔 𝒂𝒃𝒐𝒗𝒆 𝒄𝒐𝒎𝒆 𝒇𝒓𝒐𝒎 𝒘𝒉𝒂𝒕 𝒖𝒔𝒆𝒓𝒔 𝒉𝒂𝒗𝒆 𝒔𝒆𝒂𝒓𝒄𝒉𝒆𝒅 𝒇𝒐𝒓. "
+        "𝑻𝒉𝒆𝒚'𝒓𝒆 𝒔𝒉𝒐𝒘𝒏 𝒕𝒐 𝒚𝒐𝒖 𝒆𝒙𝒂𝒄𝒕𝒍𝒚 𝒂𝒔 𝒕𝒉𝒆𝒚 𝒘𝒆𝒓𝒆 𝒔𝒆𝒂𝒓𝒄𝒉𝒆𝒅, "
+        "𝒘𝒊𝒕𝒉𝒐𝒖𝒕 𝒂𝒏𝒚 𝒄𝒉𝒂𝒏𝒈𝒆𝒔 𝒃𝒚 𝒕𝒉𝒆 𝒐𝒘𝒏𝒆𝒓."
+    )
+    formatted_list += f"\n\n{additional_message}"
+    reply_text = f"<b>Top {len(truncated_messages)} Tʀᴀɴᴅɪɴɢ ᴏғ ᴛʜᴇ ᴅᴀʏ 👇:</b>\n\n{formatted_list}"
+    await message.reply_text(reply_text)
+
+@Client.on_message(filters.private & filters.command("pm_search") & filters.user(ADMINS))
+async def set_pm_search(client, message):
+    bot_id = client.me.id
+    try:
+        option = message.text.split(" ", 1)[1].strip().lower()
+        enable_status = option in ['on', 'true']
+    except (IndexError, ValueError):
+        await message.reply_text("<b>💔 Invalid option. Please send 'on' or 'off' after the command..</b>")
+        return
+    try:
+        await db.update_pm_search_status(bot_id, enable_status)
+        response_text = (
+            "<b> ᴘᴍ ꜱᴇᴀʀᴄʜ ᴇɴᴀʙʟᴇᴅ ✅</b>" if enable_status
+            else "<b> ᴘᴍ ꜱᴇᴀʀᴄʜ ᴅɪꜱᴀʙʟᴇᴅ ❌</b>"
+        )
+        await message.reply_text(response_text)
+    except Exception as e:
+        logger.error(f"Error in set_pm_search: {e}")
+        await message.reply_text(f"<b>❗ An error occurred: {e}</b>")
+
+@Client.on_message(filters.private & filters.command("movie_update") & filters.user(ADMINS))
+async def set_movie_update_notification(client, message):
+    bot_id = client.me.id
+    try:
+        option = message.text.split(" ", 1)[1].strip().lower()
+        enable_status = option in ['on', 'true']
+    except (IndexError, ValueError):
+        await message.reply_text("<b>💔 Invalid option. Please send 'on' or 'off' after the command.</b>")
+        return
+    try:
+        await db.update_movie_update_status(bot_id, enable_status)
+        response_text = (
+            "<b>ᴍᴏᴠɪᴇ ᴜᴘᴅᴀᴛᴇ ɴᴏᴛɪꜰɪᴄᴀᴛɪᴏɴ ᴇɴᴀʙʟᴇᴅ ✅</b>" if enable_status
+            else "<b>ᴍᴏᴠɪᴇ ᴜᴘᴅᴀᴛᴇ ɴᴏᴛɪꜰɪᴄᴀᴛɪᴏɴ ᴅɪꜱᴀʙʟᴇᴅ ❌</b>"
+        )
+        await message.reply_text(response_text)
+    except Exception as e:
+        logger.error(f"Error in set_movie_update_notification: {e}")
+        await message.reply_text(f"<b>❗ An error occurred: {e}</b>")
+
+@Client.on_message(filters.command("restart") & filters.user(ADMINS))
+async def stop_button(bot, message):
+    msg = await bot.send_message(text="<b><i>ʙᴏᴛ ɪꜱ ʀᴇꜱᴛᴀʀᴛɪɴɢ</i></b>", chat_id=message.chat.id)
+    await asyncio.sleep(3)
