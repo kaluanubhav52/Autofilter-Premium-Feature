@@ -395,3 +395,206 @@ async def start(client, message):
             elif STREAM_MODE and PREMIUM_STREAM_MODE:
                 if not await db.has_premium_access(message.from_user.id):
                    btn =
+                        [InlineKeyboardButton('🚀 ꜰᴀꜱᴛ ᴅᴏᴡɴʟᴏᴀᴅ / ᴡᴀᴛᴄʜ ᴏɴʟɪɴᴇ 🖥️', callback_data=f'prestream')],
+                        [InlineKeyboardButton('📌 ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇꜱ ᴄʜᴀɴɴᴇʟ 📌', url=UPDATE_CHNL_LNK)]  # Keep this line unchanged  
+                    ]
+                else:
+                    btn = [
+                        [InlineKeyboardButton('🚀 ꜰᴀꜱᴛ ᴅᴏᴡɴʟᴏᴀᴅ / ᴡᴀᴛᴄʜ ᴏɴʟɪɴᴇ 🖥️', callback_data=f'generate_stream_link:{file_id}')],
+                        [InlineKeyboardButton('📌 ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇꜱ ᴄʜᴀɴɴᴇʟ 📌', url=UPDATE_CHNL_LNK)]  # Keep this line unchanged  
+                    ]
+            else:
+
+                btn = [[InlineKeyboardButton('📌 ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇꜱ ᴄʜᴀɴɴᴇʟ 📌', url=UPDATE_CHNL_LNK)]] 
+            msg = await client.send_cached_media(
+                chat_id=message.from_user.id,
+                file_id=file_id,
+                protect_content=settings.get('file_secure', PROTECT_CONTENT),
+                reply_markup=InlineKeyboardMarkup(btn))
+
+            filetype = msg.media
+            file = getattr(msg, filetype.value)
+            title = clean_filename(file.file_name)
+            size=get_size(file.file_size)
+            f_caption = f"<code>{title}</code>"
+            settings = await get_settings(int(grp_id))
+            DREAMX_CAPTION = settings.get('caption', CUSTOM_FILE_CAPTION)
+            if DREAMX_CAPTION:
+                try:
+                    f_caption=DREAMX_CAPTION.format(file_name= '' if title is None else title, file_size='' if size is None else size, file_caption='')
+                except:
+                    return
+            await msg.edit_caption(
+                f_caption,
+                reply_markup=InlineKeyboardMarkup(btn)
+            )
+            k = await msg.reply(script.DEL_MSG.format(get_time(DELETE_TIME)),
+                quote=True, parse_mode=enums.ParseMode.HTML
+            )
+            await asyncio.sleep(DELETE_TIME)
+            await msg.delete()
+            await k.edit_text("<b>ʏᴏᴜʀ ᴠɪᴅᴇᴏ / ꜰɪʟᴇ ɪꜱ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴅᴇʟᴇᴛᴇᴅ !!</b>")
+            return
+        except Exception as e:
+            logger.exception(e)
+            pass
+        return await message.reply('ɴᴏ ꜱᴜᴄʜ ꜰɪʟᴇ ᴇxɪꜱᴛꜱ !')
+
+    files = files_[0]
+    title = clean_filename(files.file_name)
+    size = get_size(files.file_size)
+    f_caption = files.caption
+    settings = await get_settings(int(grp_id))            
+    DREAMX_CAPTION = settings.get('caption', CUSTOM_FILE_CAPTION)
+    if DREAMX_CAPTION:
+        try:
+            f_caption=DREAMX_CAPTION.format(file_name= '' if title is None else title, file_size='' if size is None else size, file_caption='' if f_caption is None else f_caption)
+        except Exception as e:
+            logger.exception(e)
+            f_caption = f_caption
+
+    if f_caption is None:
+        f_caption = clean_filename(files.file_name)
+
+    if STREAM_MODE and not PREMIUM_STREAM_MODE:
+        btn = [
+            [InlineKeyboardButton('🚀 ꜰᴀꜱᴛ ᴅᴏᴡɴʟᴏᴀᴅ / ᴡᴀᴛᴄʜ ᴏɴʟɪɴᴇ 🖥️', callback_data=f'generate_stream_link:{file_id}')],
+            [InlineKeyboardButton('📌 ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇꜱ ᴄʜᴀɴɴᴇʟ 📌', url=UPDATE_CHNL_LNK)]  # Keep this line unchanged  
+        ]
+    elif STREAM_MODE and PREMIUM_STREAM_MODE:
+        if not await db.has_premium_access(message.from_user.id):
+            btn = [
+                [InlineKeyboardButton('🚀 ꜰᴀꜱᴛ ᴅᴏᴡɴʟᴏᴀᴅ / ᴡᴀᴛᴄʜ ᴏɴʟɪɴᴇ 🖥️', callback_data=f'prestream')],
+                [InlineKeyboardButton('📌 ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇꜱ ᴄʜᴀɴɴᴇʟ 📌', url=UPDATE_CHNL_LNK)]  # Keep this line unchanged  
+            ]
+        else:
+            btn = [
+                [InlineKeyboardButton('🚀 ꜰᴀꜱᴛ ᴅᴏᴡɴʟᴏᴀᴅ / ᴡᴀᴛᴄʜ ᴏɴʟɪɴᴇ 🖥️', callback_data=f'generate_stream_link:{file_id}')],
+                [InlineKeyboardButton('📌 ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇꜱ ᴄʜᴀɴɴᴇʟ 📌', url=UPDATE_CHNL_LNK)]  # Keep this line unchanged  
+            ]
+    else:
+        btn = [[InlineKeyboardButton('📌 ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇꜱ ᴄʜᴀɴɴᴇʟ 📌', url=UPDATE_CHNL_LNK)]]
+    msg = await client.send_cached_media(
+        chat_id=message.from_user.id,
+        file_id=file_id,
+        caption=f_caption,
+        protect_content=settings.get('file_secure', PROTECT_CONTENT),
+        reply_markup=InlineKeyboardMarkup(btn)
+    )
+    k = await msg.reply(script.DEL_MSG.format(get_time(DELETE_TIME)),
+        quote=True, parse_mode=enums.ParseMode.HTML
+    )     
+    await asyncio.sleep(DELETE_TIME)
+    await msg.delete()
+    await k.edit_text("<b>ʏᴏᴜʀ ᴠɪᴅᴇᴏ / ꜰɪʟᴇ ɪꜱ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴅᴇʟᴇᴛᴇᴅ !!</b>")
+    return
+
+@Client.on_message(filters.command('logs') & filters.user(ADMINS))
+async def log_file(bot, message):
+    """Send log file"""
+    try:
+        await message.reply_document('DreamXlogs.txt', caption="📑 **ʟᴏɢꜱ**")
+    except Exception as e:
+        await message.reply(str(e))
+
+@Client.on_message(filters.command('delete') & filters.user(ADMINS))
+async def delete(bot, message):
+    """Delete file from database"""
+    reply = message.reply_to_message
+    if reply and reply.media:
+        msg = await message.reply("Pʀᴏᴄᴇssɪɴɢ...⏳", quote=True)
+    else:
+        await message.reply('Rᴇᴘʟʏ ᴛᴏ ғɪʟᴇ ᴡɪᴛʜ /delete ᴡʜɪᴄʜ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴅᴇʟᴇᴛᴇ', quote=True)
+        return
+
+    for file_type in ("document", "video", "audio"):
+        media = getattr(reply, file_type, None)
+        if media is not None:
+            break
+    else:
+        await msg.edit('Tʜɪs ɪs ɴᴏᴛ sᴜᴘᴘᴏʀᴛᴇᴅ ғɪʟᴇ ғᴏʀᴍᴀᴛ')
+        return
+
+    file_id, file_ref = unpack_new_file_id(media.file_id)
+    if await Media.count_documents({'file_id': file_id}):
+        result = await Media.collection.delete_one({
+            '_id': file_id,
+        })
+    else:
+        result = await Media2.collection.delete_one({
+            '_id': file_id,
+        })
+    if result.deleted_count:
+        await msg.edit('Fɪʟᴇ ɪs sᴜᴄᴄᴇssғᴜʟʟʏ ᴅᴇʟᴇᴛᴇᴅ ғʀᴏᴍ ᴅᴀᴛᴀʙᴀsᴇ ✅')
+    else:
+        file_name = re.sub(r"(_|\-|\.|\+)", " ", str(media.file_name))
+        result = await Media.collection.delete_many({
+            'file_name': file_name,
+            'file_size': media.file_size,
+            'mime_type': media.mime_type
+            })
+        if result.deleted_count:
+            await msg.edit('Fɪʟᴇ ɪs sᴜᴄᴄᴇssғᴜʟʟʏ ᴅᴇʟᴇᴛᴇᴅ ғʀᴏᴍ ᴅᴀᴛᴀʙᴀsᴇ ✅')
+        else:
+            result = await Media2.collection.delete_many({
+                'file_name': file_name,
+                'file_size': media.file_size,
+                'mime_type': media.mime_type
+            })
+            if result.deleted_count:
+                await msg.edit('Fɪʟᴇ ɪs sᴜᴄᴄᴇssғᴜʟʟʏ ᴅᴇʟᴇᴛᴇᴅ ғʀᴏᴍ ᴅᴀᴛᴀʙᴀsᴇ')
+            else:
+                result = await Media.collection.delete_many({
+                    'file_name': media.file_name,
+                    'file_size': media.file_size,
+                    'mime_type': media.mime_type
+                })
+                if result.deleted_count:
+                    await msg.edit('Fɪʟᴇ ɪs sᴜᴄᴄᴇssғᴜʟʟʏ ᴅᴇʟᴇᴛᴇᴅ ғʀᴏᴍ ᴅᴀᴛᴀʙᴀsᴇ ✅')
+                else:
+                    result = await Media2.collection.delete_many({
+                        'file_name': media.file_name,
+                        'file_size': media.file_size,
+                        'mime_type': media.mime_type
+                    })
+                    if result.deleted_count:
+                        await msg.edit('Fɪʟᴇ ɪs sᴜᴄᴄᴇssғᴜʟʟʏ ᴅᴇʟᴇᴛᴇᴅ ғʀᴏᴍ ᴅᴀᴛᴀʙᴀsᴇ ✅')
+                    else:
+                        await msg.edit('Fɪʟᴇ ɴᴏᴛ ғᴏᴜɴᴅ ɪɴ ᴅᴀᴛᴀʙᴀsᴇ ❌')
+
+
+@Client.on_message(filters.command('deleteall') & filters.user(ADMINS))
+async def delete_all_index(bot, message):
+    await message.reply_text(
+        'ᴛʜɪꜱ ᴡɪʟʟ ᴅᴇʟᴇᴛᴇ ᴀʟʟ ʏᴏᴜʀ ɪɴᴅᴇxᴇᴅ ꜰɪʟᴇꜱ !\nᴅᴏ ʏᴏᴜ ꜱᴛɪʟʟ ᴡᴀɴᴛ ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ ?',
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        text="⚠️ ʏᴇꜱ ⚠️", callback_data="autofilter_delete"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="❌ ɴᴏ ❌", callback_data="close_data"
+                    )
+                ],
+            ]
+        ),
+        quote=True,
+    )
+
+@Client.on_message(filters.command('settings'))
+async def settings(client, message):
+    user_id = message.from_user.id if message.from_user else None
+    if not user_id:
+        return await message.reply(f"ʏᴏᴜ'ʀᴇ ᴀɴᴏɴʏᴍᴏᴜꜱ ᴀᴅᴍɪɴ.")
+    chat_type = message.chat.type
+    if chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        grp_id = message.chat.id
+        if not await is_check_admin(client, grp_id, message.from_user.id):
+            return await message.reply_text(script.NT_ADMIN_ALRT_TXT)
+        await db.connect_group(grp_id, user_id)
+        btn = [[
+                InlineKeyboardButton("👤 ᴏᴘᴇɴ ɪɴ ᴘʀɪᴠᴀᴛᴇ ᴄʜᴀᴛ 👤", callback_data=f"opnsetpm#{grp_id}")
+              ],[
