@@ -1,10 +1,9 @@
- 
-from datetime import timedelta, datetime
+ from datetime import timedelta, datetime
 import pytz
 import string
 import random
-from kurigram import Client, filters
-from kurigram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from database.users_chats_db import db
 from info import ADMINS, PREMIUM_LOGS
 from utils import get_seconds, temp
