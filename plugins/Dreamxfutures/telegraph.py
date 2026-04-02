@@ -1,7 +1,7 @@
 import os
 import requests
-from pyrogram import Client, filters
-from pyrogram.types import Message
+from kurigram import Client, filters
+from kurigram.types import Message
 
 IMGBB_API_KEY = "d4cc3d793cb68b2c6cdc2197588e895c"
 
