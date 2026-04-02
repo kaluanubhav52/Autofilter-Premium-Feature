@@ -4,9 +4,9 @@ import logging
 from info import *
 from imdb import Cinemagoer 
 import asyncio
-from kurigram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
-from kurigram.errors import InputUserDeactivated, UserNotParticipant, FloodWait, UserIsBlocked, PeerIdInvalid, ChatAdminRequired, MessageNotModified
-from kurigram import enums
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.errors import InputUserDeactivated, UserNotParticipant, FloodWait, UserIsBlocked, PeerIdInvalid, ChatAdminRequired, MessageNotModified
+from pyrogram import enums
 from typing import Union
 from Script import script
 from typing import List
