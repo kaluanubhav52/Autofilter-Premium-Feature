@@ -5,12 +5,12 @@ import logging
 from info import *
 from typing import Dict, Union
 from dreamxbotz.Bot import work_loads
-from pyrogram import Client, utils, raw
+from kurigram import Client, utils, raw
 from .file_properties import get_file_ids
-from pyrogram.session import Session, Auth
-from pyrogram.errors import AuthBytesInvalid
+from kurigram.session import Session, Auth
+from kurigram.errors import AuthBytesInvalid
 from dreamxbotz.server.exceptions import FIleNotFound
-from pyrogram.file_id import FileId, FileType, ThumbnailSource
+from kurigram.file_id import FileId, FileType, ThumbnailSource
 
 
 class ByteStreamer:
