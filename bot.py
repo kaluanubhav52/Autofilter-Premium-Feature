@@ -1,15 +1,28 @@
 import sys
 import glob
-import importlib
-from pathlib import Path
-from pyrogram import Client, idle, __version__
-from pyrogram.raw.all import layer
-import time
-from pyrogram.errors import FloodWait
+import importlib.util
+import logging
+import logging.config
 import asyncio
-from datetime import date, datetime
+import uvloop
+import time
 import pytz
+from pathlib import Path
+from datetime import date, datetime
 from aiohttp import web
+from PIL import Image
+
+# --- STEP 1: Loop & Library Setup ---
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+from kurigram import Client, idle, __version__
+from kurigram.raw.all import layer
+from kurigram.errors import FloodWait
+import kurigram.utils
+
+# Image pixel limit fix
+Image.MAX_IMAGE_PIXELS = 500_000_000
+
+# Database & Info Imports
 from database.ia_filterdb import Media, Media2
 from database.users_chats_db import db
 from info import *
@@ -19,83 +32,94 @@ from plugins import web_server, check_expired_premium, keep_alive
 from dreamxbotz.Bot import dreamxbotz
 from dreamxbotz.util.keepalive import ping_server
 from dreamxbotz.Bot.clients import initialize_clients
-from PIL import Image
-Image.MAX_IMAGE_PIXELS = 500_000_000
 
-import logging
-import logging.config
-
-logging.config.fileConfig('logging.conf')
-logging.getLogger().setLevel(logging.INFO)
-logging.getLogger("pyrogram").setLevel(logging.ERROR)
-logging.getLogger("imdbpy").setLevel(logging.ERROR)
+# --- STEP 2: Logging Control (Render Fix) ---
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("kurigram").setLevel(logging.ERROR)
 logging.getLogger("aiohttp").setLevel(logging.ERROR)
-logging.getLogger("aiohttp.web").setLevel(logging.ERROR)
 logging.getLogger("pymongo").setLevel(logging.WARNING)
 
 botStartTime = time.time()
-ppath = "plugins/*.py"
-files = glob.glob(ppath)
+kurigram.utils.MIN_CHANNEL_ID = -1009147483647
 
 async def dreamxbotz_start():
-    print('\n\nInitalizing DreamxBotz')
+    print('\n🚀 Initializing DreamxBotz on Kurigram...')
     await dreamxbotz.start()
+    
     bot_info = await dreamxbotz.get_me()
-    dreamxbotz.username = bot_info.username
+    dreamxbotz.username = "@" + bot_info.username
+    
     await initialize_clients()
-    for name in files:
-        with open(name) as a:
-            patt = Path(a.name)
-            plugin_name = patt.stem.replace(".py", "")
-            plugins_dir = Path(f"plugins/{plugin_name}.py")
-            import_path = "plugins.{}".format(plugin_name)
-            spec = importlib.util.spec_from_file_location(import_path, plugins_dir)
+
+    # --- Plugin Loading (Improved) ---
+    plugins_dir = Path("plugins")
+    for file in sorted(plugins_dir.rglob("*.py")):
+        if file.name == "__init__.py":
+            continue
+        
+        plugin_name = file.stem
+        import_path = f"plugins.{plugin_name}"
+        
+        try:
+            spec = importlib.util.spec_from_file_location(import_path, file)
             load = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(load)
-            sys.modules["plugins." + plugin_name] = load
-            print("DreamxBotz Imported => " + plugin_name)
+            sys.modules[import_path] = load
+            print(f"✅ Imported => {plugin_name}")
+        except Exception as e:
+            print(f"❌ Failed to load {plugin_name}: {e}")
+
     if ON_HEROKU:
         asyncio.create_task(ping_server()) 
-    b_users, b_chats = await db.get_banned()
-    temp.BANNED_USERS = b_users
-    temp.BANNED_CHATS = b_chats
-    await Media.ensure_indexes()
-    if MULTIPLE_DB:
-        await Media2.ensure_indexes()
-        print("Multiple Database Mode On. Now Files Will Be Save In Second DB If First DB Is Full")
-    else:
-        print("Single DB Mode On ! Files Will Be Save In First Database")
-    me = await dreamxbotz.get_me()
-    temp.ME = me.id
-    temp.U_NAME = me.username
-    temp.B_NAME = me.first_name
-    temp.B_LINK = me.mention
-    dreamxbotz.username = '@' + me.username
-    dreamxbotz.loop.create_task(check_expired_premium(dreamxbotz))
-    logging.info(f"{me.first_name} with Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
-    logging.info(LOG_STR)
-    logging.info(script.LOGO)
+
+    # Database setup
+    try:
+        b_users, b_chats = await db.get_banned()
+        temp.BANNED_USERS, temp.BANNED_CHATS = b_users, b_chats
+        await Media.ensure_indexes()
+        if MULTIPLE_DB:
+            await Media2.ensure_indexes()
+            print("Multiple DB: ON")
+    except:
+        pass
+
+    # Bot identity setup
+    temp.ME = bot_info.id
+    temp.U_NAME = bot_info.username
+    temp.B_NAME = bot_info.first_name
+    temp.B_LINK = bot_info.mention
+    
+    asyncio.create_task(check_expired_premium(dreamxbotz))
+    
+    # Restart Message logic
     tz = pytz.timezone('Asia/Kolkata')
-    today = date.today()
-    now = datetime.now(tz)
-    time = now.strftime("%H:%M:%S %p")
-    await dreamxbotz.send_message(chat_id=LOG_CHANNEL, text=script.RESTART_TXT.format(temp.B_LINK, today, time))
-    app = web.AppRunner(await web_server())
-    await app.setup()
-    bind_address = "0.0.0.0"
-    await web.TCPSite(app, bind_address, PORT).start()
-    dreamxbotz.loop.create_task(keep_alive())
+    time_now = datetime.now(tz).strftime("%H:%M:%S %p")
+    if LOG_CHANNEL:
+        try:
+            await dreamxbotz.send_message(
+                chat_id=LOG_CHANNEL, 
+                text=script.RESTART_TXT.format(temp.B_LINK, date.today(), time_now)
+            )
+        except:
+            pass
+
+    # --- Web Server for Render Port Binding ---
+    try:
+        web_app = await web_server()
+        runner = web.AppRunner(web_app)
+        await runner.setup()
+        await web.TCPSite(runner, "0.0.0.0", PORT).start()
+    except:
+        pass
+
+    asyncio.create_task(keep_alive())
+    print(f"✅ {bot_info.first_name} is LIVE!")
     await idle()
     
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    while True:
-        try:
-            loop.run_until_complete(dreamxbotz_start())
-            break  
-        except FloodWait as e:
-            print(f"FloodWait! Sleeping for {e.value} seconds.")
-            time.sleep(e.value) 
-        except KeyboardInterrupt:
-            logging.info('Service Stopped Bye 👋')
-            break
+    try:
+        asyncio.run(dreamxbotz_start())
+    except FloodWait as e:
+        time.sleep(e.value)
+    except KeyboardInterrupt:
+        logging.info('Service Stopped Bye 👋')
