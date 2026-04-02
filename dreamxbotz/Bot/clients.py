@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from info import *
-from kurigram import Client
+from pyrogram import Client
 from dreamxbotz.util.config_parser import TokenParser
 from . import multi_clients, work_loads, dreamxbotz
 
