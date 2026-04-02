@@ -3,13 +3,13 @@ import time
 import os
 import asyncio
 import logging
-from pyrogram import Client, filters
-from pyrogram.errors.exceptions.bad_request_400 import MessageTooLong
-from pyrogram.errors import FloodWait
+from kurigram import Client, filters
+from kurigram.errors.exceptions.bad_request_400 import MessageTooLong
+from kurigram.errors import FloodWait
 from database.users_chats_db import db
 from info import ADMINS
 from utils import users_broadcast, groups_broadcast, temp, get_readable_time, clear_junk, junk_group
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from kurigram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 
 lock = asyncio.Lock()
 
